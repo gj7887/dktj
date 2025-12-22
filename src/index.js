@@ -95,23 +95,27 @@ function loadEnv() {
   const projectUrl = projectUrlInput.replace(/\/+$/, '');
 
   return {
-    uploadUrl: toString(process.env.UPLOAD_URL, ''),                                 // 上传订阅地址
+    uploadUrl: toString(process.env.UPLOAD_URL, ''),        // 上传订阅地址
     projectUrl,
-    projectUrlConfigured: Boolean(projectUrl),                                       // 是否启用项目上传 
-    autoAccess: toBoolean(process.env.AUTO_ACCESS, false),                           // 是否启用自动访问保持在线
-    httpPort: toNumber(process.env.PORT ?? process.env.SERVER_PORT, 3000),           // http服务订阅端口
-    argoPort: toNumber(process.env.ARGO_PORT, 8001),                                 // xray监听端口，cloudflared隧道转发到该端口  
-    uuid: toString(process.env.UUID, '0a1ed079-8732-45b2-9026-09093c01dc2e'),        // 在不同的平台运行需修改UUID
-    argoDomain: toString(process.env.ARGO_DOMAIN, ''),                               // 固定隧道域名,留空即启用临时隧道
-    argoAuth: toString(process.env.ARGO_AUTH, ''),                                   // 固定隧道密钥json或token,留空即启用临时隧道
-    cfIp: toString(process.env.CFIP, 'www.visa.com.tw'),                             // cloudflared 绑定的IP地址
-    cfPort: toNumber(process.env.CFPORT, 443),                                       // cloudflared监听端口
-    nodeNamePrefix: toString(process.env.NAME, ''),                                  // 节点名称
-    filePath: toString(process.env.FILE_PATH, './tmp'),                              // 文件存储路径
-    subPath: sanitizeSubPath(process.env.SUB_PATH || 'sub'),                         // 订阅路径
-    uploadTimeoutMs: toNumber(process.env.UPLOAD_TIMEOUT_MS, 8000),                  // 上传超时时间
+    projectUrlConfigured: Boolean(projectUrl),                // 是否启用项目上传 
+    autoAccess: toBoolean(process.env.AUTO_ACCESS, false),             // 是否启用自动访问保持在线
+    httpPort: toNumber(process.env.PORT ?? process.env.SERVER_PORT, 3000),          // http服务订阅端口
+    argoPort: toNumber(process.env.ARGO_PORT, 8001),                    // xray监听端口，cloudflared隧道转发到该端口  
+    uuid: toString(process.env.UUID, '89c13786-25aa-4520-b2e7-12cd60fb5202'),       // 在不同的平台运行需修改UUID
+    nezhaServer: toString(process.env.NEZHA_SERVER, ''),          // 哪吒服务器地址
+    nezhaPort: toString(process.env.NEZHA_PORT, ''),              // 哪吒服务器端口
+    nezhaKey: toString(process.env.NEZHA_KEY, ''),                      // 哪吒服务器密钥
+    nezhaTls: toBoolean(process.env.NEZHA_TLS, false),                  // 哪吒服务器是否使用TLS
+    argoDomain: toString(process.env.ARGO_DOMAIN, ''),                    // 固定隧道域名,留空即启用临时隧道
+    argoAuth: toString(process.env.ARGO_AUTH, ''),                        // 固定隧道密钥json或token,留空即启用临时隧道
+    cfIp: toString(process.env.CFIP, 'www.visa.com.tw'),  // cloudflared 绑定的IP地址
+    cfPort: toNumber(process.env.CFPORT, 443),  // cloudflared监听端口
+    nodeNamePrefix: toString(process.env.NAME, ''), // 节点名称前缀
+    filePath: toString(process.env.FILE_PATH, './tmp'), // 文件存储路径
+    subPath: sanitizeSubPath(process.env.SUB_PATH || 'sub'),  // 订阅路径
+    uploadTimeoutMs: toNumber(process.env.UPLOAD_TIMEOUT_MS, 8000), // 上传超时时间
     autoAccessIntervalMs: Math.max(60000, toNumber(process.env.AUTO_ACCESS_INTERVAL_MS, 10 * 60 * 1000)), // 自动访问间隔
-    keepFilesSeconds: Math.max(0, toNumber(process.env.CLEANUP_SECONDS, 90)),        // 保留临时文件时间
+    keepFilesSeconds: Math.max(0, toNumber(process.env.CLEANUP_SECONDS, 90)), // 保留临时文件时间
   };
 }
 
@@ -469,6 +473,7 @@ async function buildSubscription(hostname, envVars) {
 
   const encoded = Buffer.from(nodes.join('\n')).toString('base64');
   console.log('[SUB] Subscription generated');
+  console.log(encoded);
 
   return { hostname, nodes, encoded };
 }
