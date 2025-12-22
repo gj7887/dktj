@@ -1,4 +1,4 @@
-FROM node:alpine3.20
+FROM node:20-bullseye
 
 ENV DEBIAN_FRONTEND=noninteractive \
     FILE_PATH=/data
