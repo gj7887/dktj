@@ -1,8 +1,12 @@
 FROM node:20-bookworm AS build
+ARG TARGETARCH
 
 ENV DEBIAN_FRONTEND=noninteractive \
     FILE_PATH=/data \
     APP_DIR=/app
+
+ENV XRAY_ZIP_URL="https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip" \
+    CLOUDFLARED_URL="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -17,7 +21,10 @@ RUN apt-get update \
 RUN XRAY_TMP="/tmp/xray" \
     && install -d /opt/bin /opt/share/xray \
     && mkdir -p "${XRAY_TMP}" \
-    && curl -fsSL https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o "${XRAY_TMP}/xray.zip" \
+    && if [ "$TARGETARCH" = "arm64" ]; then \
+         XRAY_ZIP_URL="https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-arm64-v8a.zip"; \
+       fi \
+    && curl -fsSL "$XRAY_ZIP_URL" -o "${XRAY_TMP}/xray.zip" \
     && unzip -q "${XRAY_TMP}/xray.zip" -d "${XRAY_TMP}" \
     && install -m 755 "${XRAY_TMP}/xray" /opt/bin/xray \
     && install -m 644 "${XRAY_TMP}/geoip.dat" /opt/share/xray/geoip.dat \
@@ -27,7 +34,10 @@ RUN XRAY_TMP="/tmp/xray" \
 
 # Download and slim cloudflared
 RUN install -d /opt/bin \
-    && curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /opt/bin/cloudflared \
+    && if [ "$TARGETARCH" = "arm64" ]; then \
+         CLOUDFLARED_URL="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64"; \
+       fi \
+    && curl -fsSL "$CLOUDFLARED_URL" -o /opt/bin/cloudflared \
     && chmod +x /opt/bin/cloudflared \
     && strip --strip-unneeded /opt/bin/cloudflared || true
 
