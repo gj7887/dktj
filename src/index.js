@@ -101,12 +101,12 @@ function loadEnv() {
     autoAccess: toBoolean(process.env.AUTO_ACCESS, false),                           // 是否启用自动访问保持在线
     httpPort: toNumber(process.env.PORT ?? process.env.SERVER_PORT, 3000),           // http服务订阅端口
     argoPort: toNumber(process.env.ARGO_PORT, 8001),                                 // xray监听端口，cloudflared隧道转发到该端口  
-    uuid: toString(process.env.UUID, '86e6a10f-fbea-440b-8f0c-7926f5ae9f41'),        // 在不同的平台运行需修改UUID
-    argoDomain: toString(process.env.ARGO_DOMAIN, ''),                               // 固定隧道域名,留空即启用临时隧道
-    argoAuth: toString(process.env.ARGO_AUTH, ''),                                   // 固定隧道密钥json或token,留空即启用临时隧道
+    uuid: toString(process.env.UUID, '0a1ed079-8732-45b2-9026-09093c01dc2e'),        // 在不同的平台运行需修改UUID
+    argoDomain: toString(process.env.ARGO_DOMAIN, 'test.ydk.de5.net'),                               // 固定隧道域名,留空即启用临时隧道
+    argoAuth: toString(process.env.ARGO_AUTH, 'eyJhIjoiYjkxMWIxMDU4ZTJhZDVkOTI0YzRhMWRmMmFiNDA5YmQiLCJ0IjoiYjI4MThjOWUtM2UzZi00MDA4LWI4ZDQtZDliZTkzMGMwNTE0IiwicyI6IlpUZzFOV00wWXpZdFpXUmtNaTAwWWprMUxUaGpNVE10WmprNE16UmpNVE5oTkRneCJ9'),                                   // 固定隧道密钥json或token,留空即启用临时隧道
     cfIp: toString(process.env.CFIP, 'www.visa.com.tw'),                             // cloudflared 绑定的IP地址
     cfPort: toNumber(process.env.CFPORT, 443),                                       // cloudflared监听端口
-    nodeNamePrefix: toString(process.env.NAME, ''),                                  // 节点名称
+    nodeNamePrefix: toString(process.env.NAME, 'HK'),                                  // 节点名称
     filePath: toString(process.env.FILE_PATH, './tmp'),                              // 文件存储路径
     subPath: sanitizeSubPath(process.env.SUB_PATH || 'sub'),                         // 订阅路径
     uploadTimeoutMs: toNumber(process.env.UPLOAD_TIMEOUT_MS, 8000),                  // 上传超时时间
