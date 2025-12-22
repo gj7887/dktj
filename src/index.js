@@ -8,6 +8,7 @@ const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
 
+const TLS_PORTS = new Set(['443', '8443', '2096', '2087', '2083', '2053']);
 const NODE_PROTOCOL_REGEX = /(vless|vmess|trojan|hysteria2|tuic):\/\//i;
 const CLOUD_FLARE_HOST_REGEX = /https?:\/\/([a-z0-9.-]*trycloudflare.com)/i;
 const SUBSCRIPTION_READY_MESSAGE = 'Subscription is not ready yet, please retry later.';
@@ -33,6 +34,11 @@ async function main() {
   const server = startHttpServer(env, subscriptionState);
   const xrayProcess = startXray(paths.configFile);
   registerProcess(xrayProcess, 'xray');
+
+  const nezhaProcess = startNezhaAgent(env);
+  if (nezhaProcess) {
+    registerProcess(nezhaProcess, 'nezha-agent');
+  }
 
   const cloudflared = startCloudflared(env, paths);
   registerProcess(cloudflared.process, 'cloudflared');
@@ -89,23 +95,27 @@ function loadEnv() {
   const projectUrl = projectUrlInput.replace(/\/+$/, '');
 
   return {
-    uploadUrl: toString(process.env.UPLOAD_URL, ''),
+    uploadUrl: toString(process.env.UPLOAD_URL, ''),        // 上传订阅地址
     projectUrl,
-    projectUrlConfigured: Boolean(projectUrl),
-    autoAccess: toBoolean(process.env.AUTO_ACCESS, false),
-    httpPort: toNumber(process.env.PORT ?? process.env.SERVER_PORT, 3000),
-    argoPort: toNumber(process.env.ARGO_PORT, 8001),
-    uuid: toString(process.env.UUID, '89c13786-25aa-4520-b2e7-12cd60fb5202'),
-    argoDomain: toString(process.env.ARGO_DOMAIN, ''),
-    argoAuth: toString(process.env.ARGO_AUTH, ''),
-    cfIp: toString(process.env.CFIP, 'www.visa.com.tw'),
-    cfPort: toNumber(process.env.CFPORT, 443),
-    nodeNamePrefix: toString(process.env.NAME, ''),
-    filePath: toString(process.env.FILE_PATH, './tmp'),
-    subPath: sanitizeSubPath(process.env.SUB_PATH || 'sub'),
-    uploadTimeoutMs: toNumber(process.env.UPLOAD_TIMEOUT_MS, 8000),
-    autoAccessIntervalMs: Math.max(60000, toNumber(process.env.AUTO_ACCESS_INTERVAL_MS, 10 * 60 * 1000)),
-    keepFilesSeconds: Math.max(0, toNumber(process.env.CLEANUP_SECONDS, 90)),
+    projectUrlConfigured: Boolean(projectUrl),                // 是否启用项目上传 
+    autoAccess: toBoolean(process.env.AUTO_ACCESS, false),             // 是否启用自动访问保持在线
+    httpPort: toNumber(process.env.PORT ?? process.env.SERVER_PORT, 3000),          // http服务订阅端口
+    argoPort: toNumber(process.env.ARGO_PORT, 8001),                    // xray监听端口，cloudflared隧道转发到该端口  
+    uuid: toString(process.env.UUID, '89c13786-25aa-4520-b2e7-12cd60fb5202'),       // 在不同的平台运行需修改UUID
+    nezhaServer: toString(process.env.NEZHA_SERVER, ''),          // 哪吒服务器地址
+    nezhaPort: toString(process.env.NEZHA_PORT, ''),              // 哪吒服务器端口
+    nezhaKey: toString(process.env.NEZHA_KEY, ''),                      // 哪吒服务器密钥
+    nezhaTls: toBoolean(process.env.NEZHA_TLS, false),                  // 哪吒服务器是否使用TLS
+    argoDomain: toString(process.env.ARGO_DOMAIN, ''),                    // 固定隧道域名,留空即启用临时隧道
+    argoAuth: toString(process.env.ARGO_AUTH, ''),                        // 固定隧道密钥json或token,留空即启用临时隧道
+    cfIp: toString(process.env.CFIP, 'www.visa.com.tw'),  // cloudflared 绑定的IP地址
+    cfPort: toNumber(process.env.CFPORT, 443),  // cloudflared监听端口
+    nodeNamePrefix: toString(process.env.NAME, ''), // 节点名称前缀
+    filePath: toString(process.env.FILE_PATH, './tmp'), // 文件存储路径
+    subPath: sanitizeSubPath(process.env.SUB_PATH || 'sub'),  // 订阅路径
+    uploadTimeoutMs: toNumber(process.env.UPLOAD_TIMEOUT_MS, 8000), // 上传超时时间
+    autoAccessIntervalMs: Math.max(60000, toNumber(process.env.AUTO_ACCESS_INTERVAL_MS, 10 * 60 * 1000)), // 自动访问间隔
+    keepFilesSeconds: Math.max(0, toNumber(process.env.CLEANUP_SECONDS, 90)), // 保留临时文件时间
   };
 }
 
@@ -280,6 +290,44 @@ function startXray(configFile) {
     process.exit(1);
   });
   return child;
+}
+
+function startNezhaAgent(envVars) {
+  if (!envVars.nezhaServer || !envVars.nezhaKey) {
+    console.log('[NEZHA] Variables not set, skipping');
+    return null;
+  }
+
+  const endpoint = envVars.nezhaPort
+    ? `${envVars.nezhaServer}:${envVars.nezhaPort}`
+    : envVars.nezhaServer;
+
+  const args = [
+    '-s', endpoint,
+    '-p', envVars.nezhaKey,
+    '--disable-auto-update',
+    '--report-delay', '4',
+    '--skip-conn',
+    '--skip-procs',
+  ];
+
+  const portToCheck = envVars.nezhaPort || endpoint.split(':')[1];
+  if (envVars.nezhaTls || (portToCheck && TLS_PORTS.has(String(portToCheck)))) {
+    args.push('--tls');
+  }
+
+  console.log('[NEZHA] Launching agent');
+  try {
+    const child = spawn('nezha-agent', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    child.stdout.on('data', (data) => process.stdout.write(`[NEZHA] ${data}`));
+    child.stderr.on('data', (data) => process.stderr.write(`[NEZHA] ${data}`));
+    child.on('exit', (code) => console.warn(`[NEZHA] exited with code ${code}`));
+    child.on('error', (error) => console.error('[NEZHA] Spawn error:', error.message));
+    return child;
+  } catch (error) {
+    console.error('[NEZHA] Failed to start nezha-agent:', error.message);
+    return null;
+  }
 }
 
 function startCloudflared(envVars, currentPaths) {
