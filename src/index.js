@@ -101,16 +101,16 @@ function loadEnv() {
     autoAccess: toBoolean(process.env.AUTO_ACCESS, false),             // 是否启用自动访问保持在线
     httpPort: toNumber(process.env.PORT ?? process.env.SERVER_PORT, 3000),          // http服务订阅端口
     argoPort: toNumber(process.env.ARGO_PORT, 8001),                    // xray监听端口，cloudflared隧道转发到该端口  
-    uuid: toString(process.env.UUID, '89c13786-25aa-4520-b2e7-12cd60fb5202'),       // 在不同的平台运行需修改UUID
+    uuid: toString(process.env.UUID, '1768185c-e87f-4c02-9ffb-26c520d7a0f2'),       // 在不同的平台运行需修改UUID
     nezhaServer: toString(process.env.NEZHA_SERVER, ''),          // 哪吒服务器地址
     nezhaPort: toString(process.env.NEZHA_PORT, ''),              // 哪吒服务器端口
     nezhaKey: toString(process.env.NEZHA_KEY, ''),                      // 哪吒服务器密钥
     nezhaTls: toBoolean(process.env.NEZHA_TLS, false),                  // 哪吒服务器是否使用TLS
-    argoDomain: toString(process.env.ARGO_DOMAIN, ''),                    // 固定隧道域名,留空即启用临时隧道
-    argoAuth: toString(process.env.ARGO_AUTH, ''),                        // 固定隧道密钥json或token,留空即启用临时隧道
-    cfIp: toString(process.env.CFIP, 'www.visa.com.tw'),  // cloudflared 绑定的IP地址
+    argoDomain: toString(process.env.ARGO_DOMAIN, 'railway.ydk.de5.net'),                    // 固定隧道域名,留空即启用临时隧道
+    argoAuth: toString(process.env.ARGO_AUTH, 'eyJhIjoiYjkxMWIxMDU4ZTJhZDVkOTI0YzRhMWRmMmFiNDA5YmQiLCJ0IjoiOTVhZDNkZmYtNWUwZC00Y2RmLWE5NDgtMzEyMTIzMzYyZGQxIiwicyI6IlpEbGpaRGxsTnprdE4ySTRNaTAwTjJFNUxXSXdZbU10WXpabU5qRmpPR1kyTldVMCJ9'),                        // 固定隧道密钥json或token,留空即启用临时隧道
+    cfIp: toString(process.env.CFIP, 'cdns.doon.eu.org'),  // cloudflared 绑定的IP地址
     cfPort: toNumber(process.env.CFPORT, 443),  // cloudflared监听端口
-    nodeNamePrefix: toString(process.env.NAME, ''), // 节点名称前缀
+    nodeNamePrefix: toString(process.env.NAME, 'railway'), // 节点名称前缀
     filePath: toString(process.env.FILE_PATH, './tmp'), // 文件存储路径
     subPath: sanitizeSubPath(process.env.SUB_PATH || 'sub'),  // 订阅路径
     uploadTimeoutMs: toNumber(process.env.UPLOAD_TIMEOUT_MS, 8000), // 上传超时时间
