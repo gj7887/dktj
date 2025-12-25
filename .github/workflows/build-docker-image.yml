@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ${{ vars.CUSTOM_IMAGE_NAME || format('ghcr.io/{0}', github.repository) }}/railway
+  IMAGE_NAME: ${{ vars.CUSTOM_IMAGE_NAME || format('ghcr.io/{0}', github.repository) }}/test
   IMAGE_PLATFORMS: ${{ vars.CUSTOM_IMAGE_PLATFORMS || 'linux/amd64,linux/arm64' }}
   CUSTOM_TAGS: ${{ vars.CUSTOM_DOCKER_TAGS || '' }}
 
